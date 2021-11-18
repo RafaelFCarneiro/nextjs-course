@@ -13,10 +13,28 @@ function HomePage(props) {
   );
 }
 
-export async function getStaticProps() {
+export async function getStaticProps(context) {
+  console.log("(Re-)Generating...");
   const filePath = path.join(process.cwd(), "data", "dummy-backend.json");
-  const props = JSON.parse(await fs.readFile(filePath));
-  return { props };
+  const data = JSON.parse(await fs.readFile(filePath));
+
+  if (!data) {
+    return {
+      redirect: {
+        destination: "/no-data",
+      },
+    };
+  }
+
+  const { products } = data || [];
+  if (!products.length) {
+    return { notFound: true };
+  }
+
+  return {
+    props: data,
+    revalidate: 10,
+  };
 }
 
 export default HomePage;
